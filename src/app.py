@@ -138,3 +138,74 @@ def get_text_from_pdf(uploaded_file):
 
         return text
     return None
+
+
+def main():
+    # Streamlit interface
+    st.image('assets/header.png')
+    st.title("NextMOVE:  Personal Chess training assistant for preparing against each opponent")
+
+
+    # MongoDB connection with SSL/TLS options
+    mongo_client = MongoClient(
+        "mongodb+srv://arivolit:arivolit123@mongodbcluster0.bjmkbwc.mongodb.net/?retryWrites=true&w=majority&appName=MongoDBCluster0",
+        tls=True,
+        tlsAllowInvalidCertificates=True
+    )
+
+
+    # Database and collections
+    #db = mongo_client["vectordb"]
+    #vectors_collection = db["vectors"]
+    #chat_history_collection = db["chat_history"]
+    sat_prep_db = mongo_client["sat_prep_db"]
+    sat_prep_vectors_collection = sat_prep_db["sat_prep_vectors"]
+    sat_prep_chat_history_collection = sat_prep_db["sat_prep_chat_history"]
+
+
+    # Upload PDF
+    uploaded_file = st.file_uploader("Upload your opponents games", type="pdf")
+
+    if uploaded_file is not None:
+        # Save the uploaded PDF to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            tmp_pdf_path = tmp_file.name
+
+        # Extract text from PDF
+        text = extract_text_from_pdf(tmp_pdf_path)
+
+        # Vectorize text
+        vector = vectorize_text(text)
+
+        # Display extracted text and vector (for debugging)
+        #st.write("Extracted Text:")
+        #st.write(text)
+        ##st.write("Vector:")
+        ##st.write(vector)
+
+        # Save vector to MongoDB
+        save_vector_to_mongo(vector, text, sat_prep_vectors_collection)
+        st.success("Vector saved to MongoDB successfully!")
+
+    # Chatbot interface
+    st.title("Personalized Chess Assistant")
+
+    user_query = st.text_input("Enter your move:")
+    if user_query:
+        # Retrieve relevant documents
+        relevant_docs = retrieve_relevant_docs(user_query, sat_prep_vectors_collection)
+
+        # Generate response
+        nextmove_response = generate_response(user_query, relevant_docs)
+
+        # Display response
+        st.write("NextMOVE response:")
+        st.write(nextmove_response)
+
+        # Save chat history to MongoDB
+        save_chat_history(user_query, nextmove_response, sat_prep_chat_history_collection)
+
+
+if __name__ == "__main__":
+    main()
