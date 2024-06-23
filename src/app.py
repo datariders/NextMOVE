@@ -6,17 +6,20 @@ import streamlit as st
 
 def main():
     uri = get_mongodb_cluster_connection_uri(MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME, MONGODB_CLUSTERNAME)
-    #print(" uri: ", uri, "\t type(uri): ", type(uri))
+    if uri is not None:
+        #print(" uri: ", uri, "\t type(uri): ", type(uri))
 
-    mongodb_client = get_mongodb_cluster_client(uri)
-    games_db = get_mongodb_database(mongodb_client, "vectorsdb")
-    #print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
+        mongodb_client = get_mongodb_cluster_client(uri)
+        if mongodb_client is not None:
+            games_db = get_mongodb_database(mongodb_client, "vectorsdb")
+            #print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
 
-    games_collection = get_collection(games_db, "vectors")
-    #print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
+            if games_db is not None:
+                games_collection = get_collection(games_db, "vectors")
+                #print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
     
-    chat_history_collection = get_collection(games_db, "chat_history")
-    #print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
+                chat_history_collection = get_collection(games_db, "chat_history")
+                #print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
 
     # Streamlit interface
     st.image('assets/header.png')
@@ -26,7 +29,6 @@ def main():
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
     if uploaded_file is not None:
         text = get_text_from_pdf(uploaded_file)
-
         if text is not None:
             # Vectorize text
             embeddings = vectorize_text(text)
@@ -38,7 +40,7 @@ def main():
                 st.success("Game embeddings are saved to MongoDB collection successfully!")
 
                 user_query = st.text_input("Enter your move:")
-                if user_query is not None:
+                if user_query is not None and games_collection is not None and chat_history_collection is not None:
                     # Retrieve relevant documents
                     relevant_docs = retrieve_relevant_docs(user_query, games_collection)
                     if relevant_docs is not None:
