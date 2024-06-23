@@ -152,7 +152,14 @@ def retrieve_relevant_docs(query, collection):
 
 # Cosine similarity function
 def cosine_similarity(vec1, vec2):
-    return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
+    if vec1 is not None and vec2 is not None:
+        print(" vec1: ", vec1, "\t type(vec1): ", type(vec1))
+        print(" vec2: ", vec2, "\t type(vec2): ", type(vec2))
+
+        result = sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
+        print(" result: ", result, "\t type(result): ", type(result))
+        return result
+        #return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
 
 
 # Function to generate chatbot response using OpenAI GPT
