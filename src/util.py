@@ -1,11 +1,9 @@
 from constants import *
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-#from pymongo.database import Database
 import tempfile
-
-from sentence_transformers import SentenceTransformer
 import pymupdf
+from sentence_transformers import SentenceTransformer
 import openai
 
 
