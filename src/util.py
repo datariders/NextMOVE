@@ -48,18 +48,18 @@ def get_mongodb_cluster_client(uri: str) -> MongoClient:
     """
 
     client = None
+    if uri is not None:
+        try:
+            # Create a new client and connect to the server
+            client = MongoClient(uri, server_api=ServerApi('1'))
+            print(" client: ", client, "\t type(client): ", type(client))
 
-    try:
-        # Create a new client and connect to the server
-        client = MongoClient(uri, server_api=ServerApi('1'))
-        print(" client: ", client, "\t type(client): ", type(client))
-
-        # Send a ping to confirm a successful connection
-        client.admin.command('ping')
-        print("Pinged your deployment. You successfully connected to MongoDB!")
-    except Exception as e:
-        print(f"{e}")
-        raise Exception('Failed to connect to MongoDB database.  Please supply valid MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME, MONGODB_CLUSTERNAME parameters') from e
+            # Send a ping to confirm a successful connection
+            client.admin.command('ping')
+            print("Pinged your deployment. You successfully connected to MongoDB!")
+        except Exception as e:
+            print(f"{e}")
+            raise Exception('Failed to connect to MongoDB database.  Please supply valid MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME, MONGODB_CLUSTERNAME parameters') from e
 
     return client
 
