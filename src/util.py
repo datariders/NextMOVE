@@ -22,7 +22,6 @@ def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_passw
     mongodb_cluster_hostname (str): MongoDB cluster hostname
     mongodb_cluster_name (str): MongoDB cluster name
 
-
     Returns:
     str: MongoDB cluster connection uri
     """
@@ -35,10 +34,6 @@ def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_passw
             mongodb_cluster_hostname +
             "/?retryWrites=true&w=majority&appName=" +
             mongodb_cluster_name)
-
-
-#help(get_mongodb_cluster_connection_uri)
-
 
 
 def get_mongodb_cluster_client(uri: str) -> MongoClient:
@@ -98,7 +93,6 @@ def extract_text_from_pdf(pdf_path):
                 print(" page: ", page, "\t type(page): ", type(page))
                 text += page.get_text()  # Extract text from the page
         except Exception as e:
-            #st.error(f"Error extracting text from PDF: {e}")
             print(f"{e}")
             raise Exception('Error extracting text from PDF: {e}') from e
 
@@ -128,7 +122,6 @@ def vectorize_text(text):
 
 
 # Function to save vector to MongoDB
-#def save_vector_to_mongo(vector, text, collection):
 def save_embeddings_to_collection(embeddings, text, collection):
     print("\n\n save_embeddings_to_collection(embeddings, text, collection)")
     print("\n embeddings: ", embeddings)
