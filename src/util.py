@@ -87,14 +87,15 @@ def extract_text_from_pdf(pdf_path):
     if pdf_path is not None:
         try:
             doc = pymupdf.open(pdf_path)  # Open the PDF document
-            #print(" doc: ", doc, "\t type(doc): ", type(doc))
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)  # Load a page
-                print(" page: ", page, "\t type(page): ", type(page))
-                text += page.get_text()  # Extract text from the page
-        except Exception as e:
-            print(f"{e}")
-            raise Exception('Error extracting text from PDF: {e}') from e
+            if doc is not None:
+                #print(" doc: ", doc, "\t type(doc): ", type(doc))
+                for page_num in range(len(doc)):
+                    page = doc.load_page(page_num)  # Load a page
+                    print(" page: ", page, "\t type(page): ", type(page))
+                    text += page.get_text()  # Extract text from the page
+            except Exception as e:
+                print(f"{e}")
+                raise Exception('Error extracting text from PDF: {e}') from e
 
     return text
 
@@ -112,10 +113,10 @@ def vectorize_text(text):
     if text is not None:
         try:
             model = SentenceTransformer("all-MiniLM-L6-v2")
-            embeddings = model.encode(text)
-            print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
+            if model is not None:
+                embeddings = model.encode(text)
+                print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
         except Exception as e:
-            print("log error stack trace")
             print(f"{e}")
 
     return embeddings
@@ -128,22 +129,25 @@ def save_embeddings_to_collection(embeddings, text, collection):
     print("\n text: ", text)
     print("\n collection: ", collection)
 
-    document = {
-        'text': text,
-        'vector': embeddings.tolist()  # Convert numpy array to list
-    }
-    collection.insert_one(document)
-
+    if embeddings is not None and text is not None and collection is not None:
+        document = {
+            'text': text,
+            'vector': embeddings.tolist()  # Convert numpy array to list
+        }
+        collection.insert_one(document)
+        
 
 # Function to retrieve relevant documents from MongoDB
 def retrieve_relevant_docs(query, collection):
     if query is not None and collection is not None:
         #model = get_sentence_transformer_model()
         model = SentenceTransformer("all-MiniLM-L6-v2")
-        query_vector = model.encode(query).tolist()
-        docs = list(collection.find())
-        relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc['vector']), reverse=True)[:5]
-        return relevant_docs
+        if model is not None:
+            query_vector = model.encode(query).tolist()
+            docs = list(collection.find())
+            if docs is not None and query_vector is not None:
+                relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc['vector']), reverse=True)[:5]
+                return relevant_docs
 
 
 # Cosine similarity function
