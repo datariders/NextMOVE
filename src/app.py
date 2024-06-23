@@ -33,6 +33,8 @@ def main():
             # Vectorize text
             embeddings = vectorize_text(text)
             if embeddings is not None:
+                print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
+
                 # Save vector to MongoDB
                 #save_vector_to_mongo(embeddings, text, games_collection)
                 save_embeddings_to_collection(embeddings, text, games_collection)
@@ -41,12 +43,18 @@ def main():
 
                 user_query = st.text_input("Enter your move:")
                 if user_query is not None and games_collection is not None and chat_history_collection is not None:
+                    print(" user_query: ", user_query, "\t type(user_query): ", type(user_query))
+                    
                     # Retrieve relevant documents
                     relevant_docs = retrieve_relevant_docs(user_query, games_collection)
                     if relevant_docs is not None:
+                        print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
+
                         # Generate response
                         bot_response = generate_response(user_query, relevant_docs)
                         if bot_response is not None:
+                            print(" bot_response: ", bot_response, "\t type(bot_response): ", type(bot_response))
+
                             # Display response
                             st.write("NextMOVE response:")
                             st.write(bot_response)
