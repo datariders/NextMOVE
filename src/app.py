@@ -1,52 +1,18 @@
-from constants import *
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-import tempfile
-
 from sentence_transformers import SentenceTransformer
+from pymongo import MongoClient
 import pymupdf
+import tempfile
 import openai
+import streamlit as st
 
-
-
-def get_mongodb_cluster_connection_uri() -> str:
-    return "mongodb+srv://" + MONGODB_USERNAME + ":" + MONGODB_USER_PASSWORD + "@" + MONGODB_CLUSTER_HOSTNAME + "/?retryWrites=true&w=majority&appName=" + MONGODB_CLUSTERNAME
-
-
-def get_mongodb_cluster_client() -> MongoClient:
-    uri = get_mongodb_cluster_connection_uri()
-
-    # Create a new client and connect to the server
-    client = MongoClient(uri, server_api=ServerApi('1'))
-    print(" client: ", client, "\t type(client): ", type(client))
-
-    # Send a ping to confirm a successful connection
-    try:
-        client.admin.command('ping')
-        print("Pinged your deployment. You successfully connected to MongoDB!")
-        return client
-    except Exception as e:
-        print(e)
-
-
-def get_games_db_collection():
-    mongo_client = get_mongodb_cluster_client()
-
-    games_db = mongo_client["vectordb"]
-    print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
-
-    games_collection = games_db["vectors"]
-    print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
-
-    chat_history_collection = games_db["chat_history"]
-    print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
-
-    return games_db, games_collection, chat_history_collection
+# Initialize OpenAI API Key (Replace with your API key)
+#openai.api_key = '<USE_YOUR_OPENAI_API_KEY_HERE>'
+openai.api_key = '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'
 
 
 def extract_text_from_pdf(pdf_path):
     text = ""
-
+ 
     try:
         doc = pymupdf.open(pdf_path)  # Open the PDF document
         print(" doc: ", doc, "\t type(doc): ", type(doc))
@@ -60,22 +26,10 @@ def extract_text_from_pdf(pdf_path):
     return text
 
 
-# This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
-def get_sentence_transformer_model():
-    return SentenceTransformer('paraphrase-MiniLM-L6-v2')
-    #return SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-
-
 # Function to vectorize text
 def vectorize_text(text):
-    #model = get_sentence_transformer_model()
     model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-    print(" model: ", model, "\t type(model): ", type(model))
     vector = model.encode(text)
-    #embeddings = model.encode(text)
-    #print(embeddings)
-    print(" vector: ", vector, "\t type(vector): ", type(vector))
-    #print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
     return vector
 
 
@@ -90,7 +44,7 @@ def save_vector_to_mongo(vector, text, collection):
 
 # Function to retrieve relevant documents from MongoDB
 def retrieve_relevant_docs(query, collection):
-    model = get_sentence_transformer_model()
+    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
     query_vector = model.encode(query).tolist()
     docs = list(collection.find())
     relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc['vector']), reverse=True)[:5]
@@ -125,21 +79,6 @@ def save_chat_history(user_query, nextmove_response, collection):
     collection.insert_one(document)
 
 
-def get_text_from_pdf(uploaded_file):
-    if uploaded_file is not None:
-        # Save the uploaded PDF to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(uploaded_file.read())
-            tmp_pdf_path = tmp_file.name
-
-        # Extract text from PDF
-        text = extract_text_from_pdf(tmp_pdf_path)
-        print(" text: ", text, "\t type(text): ", type(text))
-
-        return text
-    return None
-
-
 def main():
     # Streamlit interface
     st.image('assets/header.png')
@@ -165,6 +104,7 @@ def main():
 
     # Upload PDF
     uploaded_file = st.file_uploader("Upload your opponents games", type="pdf")
+
 
     if uploaded_file is not None:
         # Save the uploaded PDF to a temporary file
