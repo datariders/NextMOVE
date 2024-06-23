@@ -167,6 +167,7 @@ def generate_response(query, relevant_docs):
     if query is not None and relevant_docs is not None:
         augmented_query = query + " " + " ".join([doc['text'] for doc in relevant_docs])
         if augmented_query is not None:
+            print(" augmented_query: ", augmented_query, "\t type(augmented_query): ", type(augmented_query))
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -176,6 +177,7 @@ def generate_response(query, relevant_docs):
                 max_tokens=150
             )
             if response is not None:
+                print(" response: ", response, "\t type(response): ", type(response))
                 return response['choices'][0]['message']['content'].strip()
 
 
