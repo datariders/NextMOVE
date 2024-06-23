@@ -1,10 +1,5 @@
 from constants import *
 from util import *
-#import tempfile
-
-#from sentence_transformers import SentenceTransformer
-#import pymupdf
-#import openai
 import streamlit as st
 
 
@@ -15,13 +10,13 @@ def main():
 
     mongodb_client = get_mongodb_cluster_client(uri)
     games_db = get_mongodb_database(mongodb_client, "vectorsdb")
-    print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
+    #print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
 
     games_collection = get_collection(games_db, "vectors")
-    print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
+    #print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
     
     chat_history_collection = get_collection(games_db, "chat_history")
-    print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
+    #print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
 
     # Streamlit interface
     st.image('assets/header.png')
@@ -56,7 +51,6 @@ def main():
 
                             # Save chat history to MongoDB
                             save_chat_history(user_query, bot_response, chat_history_collection)            
-
 
 
 if __name__ == "__main__":
