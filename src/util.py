@@ -100,11 +100,12 @@ def extract_text_from_pdf(pdf_path):
     return text
 
 
+"""
 # This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
 def get_sentence_transformer_model():
     return SentenceTransformer('paraphrase-MiniLM-L6-v2')
     #return SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-    
+"""    
 
 # Function to vectorize text
 def vectorize_text(text):
