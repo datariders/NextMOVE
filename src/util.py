@@ -93,9 +93,9 @@ def extract_text_from_pdf(pdf_path):
                     page = doc.load_page(page_num)  # Load a page
                     print(" page: ", page, "\t type(page): ", type(page))
                     text += page.get_text()  # Extract text from the page
-            except Exception as e:
-                print(f"{e}")
-                raise Exception('Error extracting text from PDF: {e}') from e
+        except Exception as e:
+            print(f"{e}")
+            raise Exception('Error extracting text from PDF: {e}') from e
 
     return text
 
