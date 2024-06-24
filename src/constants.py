@@ -1,9 +1,6 @@
 #OPENAI_API_KEY = "<ENTER_YOUR_OPENAI_API_KEY>"
 OPENAI_API_KEY = "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"
 
-#MONGODB_URI_CONNECTION_STRING = "<ENTER_YOUR_MONGODB_URI_CONNECTION_STRING>"
-MONGODB_URI_CONNECTION_STRING = "mongodb+srv://arivolit:arivolit123@mongodbcluster0.bjmkbwc.mongodb.net/?retryWrites=true&w=majority&appName=MongoDBCluster0"
-
 #MONGODB_USERNAME = "<ENTER_YOUR_USERNAME>"
 MONGODB_USERNAME = "arivolit"
 
