@@ -10,14 +10,9 @@ def main():
         mongodb_client = get_mongodb_cluster_client(uri)
         if mongodb_client:
             games_db = get_mongodb_database(mongodb_client, "vectorsdb")
-            #print(" games_db: ", games_db, "\t type(games_db): ", type(games_db))
-
             if games_db is not None:
                 games_collection = get_collection(games_db, "vectors")
-                #print(" games_collection: ", games_collection, "\t type(games_collection): ", type(games_collection))
-    
                 chat_history_collection = get_collection(games_db, "chat_history")
-                #print(" chat_history_collection: ", chat_history_collection, "\t type(chat_history_collection): ", type(chat_history_collection))
 
 
     # Streamlit interface
@@ -27,7 +22,6 @@ def main():
     # Upload PDF
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
     if uploaded_file:
-        #print(" uploaded_file: ", uploaded_file, "\t type(uploaded_file): ", type(uploaded_file))
         text = get_text_from_pdf(uploaded_file)
         if text:
             # Vectorize text

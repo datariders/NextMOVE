@@ -6,8 +6,19 @@ import pymupdf
 from sentence_transformers import SentenceTransformer
 import openai
 
+
+
 # Initialize OpenAI API (Replace with your API key)
 openai.api_key = OPENAI_API_KEY
+
+SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2 = "paraphrase-MiniLM-L6-v2"
+SENTENCE_TRANSFORMER_ALL_MINI_LM_L6_v2 = "all-MiniLM-L6-v2"
+
+OPENAI_MODEL_GPT_3_5_TURBO = "gpt-3.5-turbo"
+MAX_TOKENS = 150
+DOCUMENT_TEXT = "text"
+DOCUMENT_VECTOR = "vector"
+
 
 
 def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_password: str, mongodb_cluster_hostname: str) -> str: 
@@ -90,7 +101,7 @@ def extract_text_from_pdf(pdf_path):
     if pdf_path:
         try:
             doc = pymupdf.open(pdf_path)  # Open the PDF document
-            if doc is not None:
+            if doc:
                 #print(" doc: ", doc, "\t type(doc): ", type(doc))
                 for page_num in range(len(doc)):
                     page = doc.load_page(page_num)  # Load a page
@@ -103,12 +114,9 @@ def extract_text_from_pdf(pdf_path):
     return text
 
 
-"""
 # This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
 def get_sentence_transformer_model():
-    return SentenceTransformer('paraphrase-MiniLM-L6-v2')
-    #return SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-"""
+    return SentenceTransformer(SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2)
 
 
 # Function to vectorize text
@@ -117,7 +125,7 @@ def vectorize_text(text):
 
     if text:
         try:
-            model = SentenceTransformer("all-MiniLM-L6-v2")
+            model = get_sentence_transformer_model()
             if model:
                 embeddings = model.encode(text)
                 print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
@@ -136,8 +144,8 @@ def save_embeddings_to_collection(embeddings, text, collection):
 
     if embeddings is not None and text and collection is not None:
         document = {
-            'text': text,
-            'vector': embeddings.tolist()  # Convert numpy array to list
+            DOCUMENT_TEXT: text,
+            DOCUMENT_VECTOR: embeddings.tolist()  # Convert numpy array to list
         }
         collection.insert_one(document)
 
@@ -145,13 +153,12 @@ def save_embeddings_to_collection(embeddings, text, collection):
 # Function to retrieve relevant documents from MongoDB
 def retrieve_relevant_docs(query, collection):
     if query and collection is not None:
-        # model = get_sentence_transformer_model()
-        model = SentenceTransformer("all-MiniLM-L6-v2")
+        model = get_sentence_transformer_model()
         if model:
             query_vector = model.encode(query).tolist()
             docs = list(collection.find())
             if docs and query_vector:
-                relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc['vector']),
+                relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc[DOCUMENT_VECTOR]),
                                        reverse=True)[:5]
                 return relevant_docs
 
@@ -172,16 +179,16 @@ def cosine_similarity(vec1, vec2):
 # Function to generate chatbot response using OpenAI GPT
 def generate_response(query, relevant_docs):
     if query and relevant_docs:
-        augmented_query = query + " " + " ".join([doc['text'] for doc in relevant_docs])
+        augmented_query = query + " " + " ".join([doc[DOCUMENT_TEXT] for doc in relevant_docs])
         if augmented_query:
             print(" augmented_query: ", augmented_query, "\t type(augmented_query): ", type(augmented_query))
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model=OPENAI_MODEL_GPT_3_5_TURBO,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": augmented_query}
                 ],
-                max_tokens=150
+                max_tokens=MAX_TOKENS
             )
             if response:
                 print(" response: ", response, "\t type(response): ", type(response))
