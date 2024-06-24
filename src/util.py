@@ -211,9 +211,3 @@ def get_text_from_pdf(file):
 
         return text
     return None
-
-
-if __name__ == "__main__":
-    s = "mongodbcluster0.bjmkbwc.mongodb.net"
-    result = s.split(".")
-    print(" result[0]: ", result[0])
