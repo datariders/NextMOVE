@@ -36,7 +36,6 @@ def main():
                 print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
 
                 # Save vector to MongoDB
-                #save_vector_to_mongo(embeddings, text, games_collection)
                 save_embeddings_to_collection(embeddings, text, games_collection)
  
                 st.success("Game embeddings are saved to MongoDB collection successfully!")
