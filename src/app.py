@@ -5,14 +5,24 @@ import streamlit as st
 
 
 def main():
+    assert MONGODB_USERNAME is not None and len(MONGODB_USERNAME) > 0, "MONGODB_USERNAME not set."
+    assert MONGODB_USER_PASSWORD is not None and len(MONGODB_USER_PASSWORD) > 0, "MONGODB_USER_PASSWORD not set."
+    assert MONGODB_CLUSTER_HOSTNAME is not None and len(MONGODB_CLUSTER_HOSTNAME) > 0, "MONGODB_CLUSTER_HOSTNAME not set."
+
     uri = get_mongodb_cluster_connection_uri(MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME)
+    assert uri is not None, "uri not set."
+
     if uri:
         mongodb_client = get_mongodb_cluster_client(uri)
         if mongodb_client:
-            games_db = get_mongodb_database(mongodb_client, "vectorsdb")
+            #games_db = get_mongodb_database(mongodb_client, "vectorsdb")
+            games_db = get_mongodb_database(mongodb_client, MONGODB_CLUSTER_DATABASE_NAME)
             if games_db is not None:
-                games_collection = get_collection(games_db, "vectors")
-                chat_history_collection = get_collection(games_db, "chat_history")
+                #games_collection = get_collection(games_db, "vectors")
+                games_collection = get_collection(games_db, MONGODB_DATABASE_GAMES_COLLECTION_NAME)
+
+                #chat_history_collection = get_collection(games_db, "chat_history")
+                chat_history_collection = get_collection(games_db, MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME)
 
 
     # Streamlit interface
@@ -25,14 +35,14 @@ def main():
         text = get_text_from_pdf(uploaded_file)
         if text:
             # Vectorize text
-            embeddings = vectorize_text(text)
-            if embeddings is not None:
-                #print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
+            embedding = vectorize_text(text)
+            if embedding is not None:
+                #print(" embedding: ", embedding, "\t type(embedding): ", type(embedding))
 
                 # Save vector to MongoDB
-                save_embeddings_to_collection(embeddings, text, games_collection)
+                save_embedding_to_collection(embedding, text, games_collection)
  
-                st.success("Game embeddings are saved to MongoDB collection successfully!")
+                st.success("Game embedding is saved to MongoDB collection successfully!")
 
                 user_query = st.text_input("Enter your move:")
                 if user_query and games_collection is not None and chat_history_collection is not None:

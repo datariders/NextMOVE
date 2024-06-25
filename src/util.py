@@ -5,11 +5,32 @@ import tempfile
 import pymupdf
 from sentence_transformers import SentenceTransformer
 import openai
-
+#from openai import *
 
 
 # Initialize OpenAI API (Replace with your API key)
-openai.api_key = OPENAI_API_KEY
+if openai.api_key is None:
+    openai.api_key = OPENAI_API_KEY
+assert openai.api_key is not None, "OpenAI API key not found."
+
+#openAI_client = OpenAIClient(api_key=openai.api_key)
+#print ("OpenAI client initialized, openAI_client: ", openAI_client, "\t type(openAI_client): ", type(openAI_client))
+ 
+
+#openai_client = OpenAI(api_key=openai.api_key)
+
+"""
+completion = openai_client.chat.completions.create(
+  model="gpt-3.5-turbo",
+  messages=[
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "Hello!"}
+  ]
+)
+
+print(completion.choices[0].message)
+"""
+
 
 SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2 = "paraphrase-MiniLM-L6-v2"
 SENTENCE_TRANSFORMER_ALL_MINI_LM_L6_v2 = "all-MiniLM-L6-v2"
@@ -121,31 +142,31 @@ def get_sentence_transformer_model():
 
 # Function to vectorize text
 def vectorize_text(text):
-    embeddings = None
+    embedding = None
 
     if text:
         try:
             model = get_sentence_transformer_model()
             if model:
-                embeddings = model.encode(text)
-                print(" embeddings: ", embeddings, "\t type(embeddings): ", type(embeddings))
+                embedding = model.encode(text)
+                print(" embedding: ", embedding, "\t type(embedding): ", type(embedding))
         except Exception as e:
             print(f"{e}")
 
-    return embeddings
+    return embedding
 
 
 # Function to save vector to MongoDB
-def save_embeddings_to_collection(embeddings, text, collection):
-    print("\n\n save_embeddings_to_collection(embeddings, text, collection)")
-    print("\n embeddings: ", embeddings)
+def save_embedding_to_collection(embedding, text, collection):
+    print("\n\n save_embedding_to_collection(embedding, text, collection)")
+    print("\n embedding: ", embedding)
     print("\n text: ", text)
     print("\n collection: ", collection)
 
-    if embeddings is not None and text and collection is not None:
+    if embedding is not None and text and collection is not None:
         document = {
             DOCUMENT_TEXT: text,
-            DOCUMENT_VECTOR: embeddings.tolist()  # Convert numpy array to list
+            DOCUMENT_VECTOR: embedding.tolist()  # Convert numpy array to list
         }
         collection.insert_one(document)
 
@@ -193,6 +214,21 @@ def generate_response(query, relevant_docs):
             if response:
                 print(" response: ", response, "\t type(response): ", type(response))
                 return response['choices'][0]['message']['content'].strip()
+
+"""
+def a():
+    completion = openai_client.chat.completions.create(
+      model="gpt-3.5-turbo",
+      messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Hello!"}
+      ],
+      max_tokens=MAX_TOKENS
+    )
+
+    print(completion.choices[0].message)
+    print("GOD")
+"""
 
 
 # Function to save chat history to MongoDB
