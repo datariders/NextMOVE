@@ -35,7 +35,6 @@ def main():
 
     # Upload PDF
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
-
     if uploaded_file:
         print(" uploaded_file: ", uploaded_file, "\t type(uploaded_file): ", type(uploaded_file))
         text = get_text_from_pdf(uploaded_file)
