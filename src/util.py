@@ -119,16 +119,12 @@ def get_collection(db, collection_name: str):
 def extract_text_from_pdf(pdf_path):
     text = ""
 
-    print(" GOD 2")
     if pdf_path:
         try:
-            print(" GOD 3")
             doc = pymupdf.open(pdf_path)  # Open the PDF document
             if doc:
-                print(" GOD 4")
                 #print(" doc: ", doc, "\t type(doc): ", type(doc))
                 for page_num in range(len(doc)):
-                    print(" GOD 5")
                     page = doc.load_page(page_num)  # Load a page
                     print(" page: ", page, "\t type(page): ", type(page))
                     text += page.get_text()  # Extract text from the page
@@ -246,7 +242,6 @@ def save_chat_history(user_query, nextmove_response, collection):
 
 def get_text_from_pdf(file):
     if file:
-        print(" GOD 1")
         # Save the uploaded PDF to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             tmp_file.write(file.read())
