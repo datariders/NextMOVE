@@ -12,17 +12,21 @@ def main():
     uri = get_mongodb_cluster_connection_uri(MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME)
     assert uri is not None, "uri not set."
 
-    if uri:
-        mongodb_client = get_mongodb_cluster_client(uri)
-        if mongodb_client:
-            #games_db = get_mongodb_database(mongodb_client, "vectorsdb")
-            games_db = get_mongodb_database(mongodb_client, MONGODB_CLUSTER_DATABASE_NAME)
-            if games_db is not None:
-                #games_collection = get_collection(games_db, "vectors")
-                games_collection = get_collection(games_db, MONGODB_DATABASE_GAMES_COLLECTION_NAME)
+    mongodb_client = get_mongodb_cluster_client(uri)
+    assert mongodb_client is not None, "mongodb_client not set."
 
-                #chat_history_collection = get_collection(games_db, "chat_history")
-                chat_history_collection = get_collection(games_db, MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME)
+    assert MONGODB_CLUSTER_DATABASE_NAME is not None and len(MONGODB_CLUSTER_DATABASE_NAME) > 0, "MONGODB_CLUSTER_DATABASE_NAME not set."
+    assert MONGODB_DATABASE_GAMES_COLLECTION_NAME is not None and len(MONGODB_DATABASE_GAMES_COLLECTION_NAME) > 0, "MONGODB_DATABASE_GAMES_COLLECTION_NAME not set."
+    assert MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME is not None and len(MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME) > 0, "MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME not set."
+
+    games_db = get_mongodb_database(mongodb_client, MONGODB_CLUSTER_DATABASE_NAME)
+    assert games_db is not None, "games_db not set."
+
+    games_collection = get_collection(games_db, MONGODB_DATABASE_GAMES_COLLECTION_NAME)
+    assert games_collection is not None, "games_collection not set."
+
+    chat_history_collection = get_collection(games_db, MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME)
+    assert chat_history_collection is not None, "chat_history_collection not set."
 
 
     # Streamlit interface
@@ -31,8 +35,17 @@ def main():
 
     # Upload PDF
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
+
     if uploaded_file:
+        print(" uploaded_file: ", uploaded_file, "\t type(uploaded_file): ", type(uploaded_file))
         text = get_text_from_pdf(uploaded_file)
+        assert text is not None, "text not set."
+
+        # Vectorize text
+        embedding = vectorize_text(text)
+        assert embedding is not None, "embedding not set."
+
+        """
         if text:
             # Vectorize text
             embedding = vectorize_text(text)
@@ -64,6 +77,7 @@ def main():
 
                             # Save chat history to MongoDB
                             save_chat_history(user_query, bot_response, chat_history_collection)            
+        """
 
 
 if __name__ == "__main__":
