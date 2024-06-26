@@ -1,11 +1,11 @@
 from constants import *
+import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import tempfile
 import pymupdf
 from sentence_transformers import SentenceTransformer
 import openai
-#from openai import *
 
 
 # Initialize OpenAI API (Replace with your API key)
@@ -13,23 +13,6 @@ if openai.api_key is None:
     openai.api_key = OPENAI_API_KEY
 assert openai.api_key is not None, "OpenAI API key not found."
 
-#openAI_client = OpenAIClient(api_key=openai.api_key)
-#print ("OpenAI client initialized, openAI_client: ", openAI_client, "\t type(openAI_client): ", type(openAI_client))
- 
-
-#openai_client = OpenAI(api_key=openai.api_key)
-
-"""
-completion = openai_client.chat.completions.create(
-  model="gpt-3.5-turbo",
-  messages=[
-    {"role": "system", "content": "You are a helpful assistant."},
-    {"role": "user", "content": "Hello!"}
-  ]
-)
-
-print(completion.choices[0].message)
-"""
 
 
 SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2 = "paraphrase-MiniLM-L6-v2"
@@ -66,11 +49,10 @@ def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_passw
            mongodb_cluster_hostname +
            "/?retryWrites=true&w=majority&appName=" +
            mongodb_clustername)
-    #print(" uri: ", uri, "\t type(uri): ", type(uri))
     return uri
 
 
-def get_mongodb_cluster_client(uri: str) -> MongoClient:
+def get_mongodb_cluster_client(uri: str) -> pymongo.mongo_client.MongoClient:
     """
     Return the MongoDB cluster connection
 
@@ -99,20 +81,20 @@ def get_mongodb_cluster_client(uri: str) -> MongoClient:
     return client
 
 
-def get_mongodb_database(mongodb_client, database_name: str):
+def get_mongodb_database(mongodb_client, database_name: str) -> pymongo.database.Database:
     """ Returns vectorsdb """
     db = None
     if mongodb_client and database_name:
         db = mongodb_client[database_name]
-        print(" db: ", db, "\t type(db): ", type(db))
+        #print(" db: ", db, "\t type(db): ", type(db))
     return db
 
 
-def get_collection(db, collection_name: str):
+def get_collection(db, collection_name: str) -> pymongo.collection.Collection:
     collection = None
     if db is not None and collection_name:
         collection = db[collection_name]
-        print(" collection: ", collection, "\t type(collection): ", type(collection))
+        #print(" collection: ", collection, "\t type(collection): ", type(collection))
     return collection
 
 
@@ -123,7 +105,7 @@ def extract_text_from_pdf(pdf_path):
         try:
             doc = pymupdf.open(pdf_path)  # Open the PDF document
             if doc:
-                #print(" doc: ", doc, "\t type(doc): ", type(doc))
+                print(" doc: ", doc, "\t type(doc): ", type(doc))
                 for page_num in range(len(doc)):
                     page = doc.load_page(page_num)  # Load a page
                     print(" page: ", page, "\t type(page): ", type(page))
@@ -215,19 +197,6 @@ def generate_response(query, relevant_docs):
                 print(" response: ", response, "\t type(response): ", type(response))
                 return response['choices'][0]['message']['content'].strip()
 
-"""
-def a():
-    completion = openai_client.chat.completions.create(
-      model="gpt-3.5-turbo",
-      messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Hello!"}
-      ],
-      max_tokens=MAX_TOKENS
-    )
-
-    print(completion.choices[0].message)
-"""
 
 
 # Function to save chat history to MongoDB

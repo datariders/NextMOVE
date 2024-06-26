@@ -14,6 +14,7 @@ def main():
 
     mongodb_client = get_mongodb_cluster_client(uri)
     assert mongodb_client is not None, "mongodb_client not set."
+    print(" mongodb_client: ", mongodb_client, "\t type(mongodb_client): " , type(mongodb_client))
 
     assert MONGODB_CLUSTER_DATABASE_NAME is not None and len(MONGODB_CLUSTER_DATABASE_NAME) > 0, "MONGODB_CLUSTER_DATABASE_NAME not set."
     assert MONGODB_DATABASE_GAMES_COLLECTION_NAME is not None and len(MONGODB_DATABASE_GAMES_COLLECTION_NAME) > 0, "MONGODB_DATABASE_GAMES_COLLECTION_NAME not set."
