@@ -45,7 +45,6 @@ def main():
         embedding = vectorize_text(text)
         assert embedding is not None, "embedding not set."
 
-        """
         if text:
             # Vectorize text
             embedding = vectorize_text(text)
@@ -77,7 +76,6 @@ def main():
 
                             # Save chat history to MongoDB
                             save_chat_history(user_query, bot_response, chat_history_collection)            
-        """
 
 
 if __name__ == "__main__":
