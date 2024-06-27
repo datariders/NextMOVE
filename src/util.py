@@ -2,6 +2,8 @@ from constants import *
 import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from pymongo.database import Database
+from pymongo.collection import Collection
 import tempfile
 import pymupdf
 from sentence_transformers import SentenceTransformer
@@ -52,7 +54,7 @@ def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_passw
     return uri
 
 
-def get_mongodb_cluster_client(uri: str) -> pymongo.mongo_client.MongoClient:
+def get_mongodb_cluster_client(uri: str) -> MongoClient:
     """
     Return the MongoDB cluster connection
 
@@ -81,24 +83,24 @@ def get_mongodb_cluster_client(uri: str) -> pymongo.mongo_client.MongoClient:
     return client
 
 
-def get_mongodb_database(mongodb_client, database_name: str) -> pymongo.database.Database:
+def get_mongodb_database(mongodb_client, database_name: str) -> Database:
     """ Returns vectorsdb """
     db = None
     if mongodb_client and database_name:
         db = mongodb_client[database_name]
-        #print(" db: ", db, "\t type(db): ", type(db))
+        print(" db: ", db, "\t type(db): ", type(db))
     return db
 
 
-def get_collection(db, collection_name: str) -> pymongo.collection.Collection:
+def get_collection(db, collection_name: str) -> Collection:
     collection = None
     if db is not None and collection_name:
         collection = db[collection_name]
-        #print(" collection: ", collection, "\t type(collection): ", type(collection))
+        print(" collection: ", collection, "\t type(collection): ", type(collection))
     return collection
 
 
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf(pdf_path) -> str:
     text = ""
 
     if pdf_path:
@@ -114,19 +116,24 @@ def extract_text_from_pdf(pdf_path):
             print(f"{e}")
             raise Exception('Error extracting text from PDF: {e}') from e
 
+    print("text: ", text, "\t type(text): ", type(text))
     return text
 
 
 # This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
 def get_sentence_transformer_model():
-    return SentenceTransformer(SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2)
+    model = SentenceTransformer(SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2)
+    print(" model: ", model, "\t type(model): ", type(model))
+    #return SentenceTransformer(SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2)
+    return model
 
 
 # Function to vectorize text
-def vectorize_text(text):
+def vectorize_text(text: str):
     embedding = None
 
     if text:
+        print(" text: ", text, "\t type(text): ", type(text))
         try:
             model = get_sentence_transformer_model()
             if model:
@@ -139,7 +146,7 @@ def vectorize_text(text):
 
 
 # Function to save vector to MongoDB
-def save_embedding_to_collection(embedding, text, collection):
+def save_embedding_to_collection(embedding, text: str, collection):
     print("\n\n save_embedding_to_collection(embedding, text, collection)")
     print("\n embedding: ", embedding)
     print("\n text: ", text)
@@ -150,31 +157,37 @@ def save_embedding_to_collection(embedding, text, collection):
             DOCUMENT_TEXT: text,
             DOCUMENT_VECTOR: embedding.tolist()  # Convert numpy array to list
         }
+        print(" document: ", document, "\t type(document): ", type(document))
         collection.insert_one(document)
 
 
 # Function to retrieve relevant documents from MongoDB
 def retrieve_relevant_docs(query, collection):
     if query and collection is not None:
+        print(" query: ", query, "\t type(query): ", type(query))
+        print(" collection: ", collection, "\t type(collection): ", type(collection))
         model = get_sentence_transformer_model()
         if model:
             query_vector = model.encode(query).tolist()
             docs = list(collection.find())
             if docs and query_vector:
+                print(" docs: ", docs, "\t type(docs): ", type(docs))
+                print(" query_vector: ", query_vector, "\t type(query_vector): ", type(query_vector))
                 relevant_docs = sorted(docs, key=lambda doc: cosine_similarity(query_vector, doc[DOCUMENT_VECTOR]),
                                        reverse=True)[:5]
+                print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
                 return relevant_docs
 
 
 # Cosine similarity function
-def cosine_similarity(vec1, vec2):
+def cosine_similarity(vec1: list, vec2: list) -> float:
     if vec1 and vec2:
-        print(" vec1: ", vec1, "\t type(vec1): ", type(vec1))
-        print(" vec2: ", vec2, "\t type(vec2): ", type(vec2))
+        #print(" vec1: ", vec1, "\t type(vec1): ", type(vec1))
+        #print(" vec2: ", vec2, "\t type(vec2): ", type(vec2))
 
         result = sum(a * b for a, b in zip(vec1, vec2)) / (
                     sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
-        print(" result: ", result, "\t type(result): ", type(result))
+        #print(" result: ", result, "\t type(result): ", type(result))
         return result
         # return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
 
@@ -182,6 +195,8 @@ def cosine_similarity(vec1, vec2):
 # Function to generate chatbot response using OpenAI GPT
 def generate_response(query, relevant_docs):
     if query and relevant_docs:
+        print(" query: ", query, "\t type(query): ", type(query))
+        print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
         augmented_query = query + " " + " ".join([doc[DOCUMENT_TEXT] for doc in relevant_docs])
         if augmented_query:
             print(" augmented_query: ", augmented_query, "\t type(augmented_query): ", type(augmented_query))
@@ -202,15 +217,20 @@ def generate_response(query, relevant_docs):
 # Function to save chat history to MongoDB
 def save_chat_history(user_query, nextmove_response, collection):
     if user_query and nextmove_response and collection is not None:
+        print(" user_query: ", user_query, "\t type(user_query): ", type(user_query))
+        print(" nextmove_response: ", nextmove_response, "\t type(nextmove_response): ", type(nextmove_response))
+        print(" collection: ", collection, "\t type(collection): ", type(collection))
         document = {
             'user_query': user_query,
             'nextmove_response': nextmove_response
         }
+        print(" document: ", document, "\t type(document): ", type(document))
         collection.insert_one(document)
 
 
-def get_text_from_pdf(file):
+def get_text_from_pdf(file) -> str:
     if file:
+        print(" file: ", file, "\t type(file): ", type(file))
         # Save the uploaded PDF to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             tmp_file.write(file.read())
