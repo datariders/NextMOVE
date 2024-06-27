@@ -104,6 +104,7 @@ def extract_text_from_pdf(pdf_path) -> str:
     text = ""
 
     if pdf_path:
+        print("pdf_path: ", pdf_path, "\t type(pdf_path): ", type(pdf_path))
         try:
             doc = pymupdf.open(pdf_path)  # Open the PDF document
             if doc:
@@ -116,7 +117,7 @@ def extract_text_from_pdf(pdf_path) -> str:
             print(f"{e}")
             raise Exception('Error extracting text from PDF: {e}') from e
 
-    print("text: ", text, "\t type(text): ", type(text))
+    #print("text: ", text, "\t type(text): ", type(text))
     return text
 
 
@@ -148,9 +149,9 @@ def vectorize_text(text: str):
 # Function to save vector to MongoDB
 def save_embedding_to_collection(embedding, text: str, collection):
     print("\n\n save_embedding_to_collection(embedding, text, collection)")
-    print("\n embedding: ", embedding)
-    print("\n text: ", text)
-    print("\n collection: ", collection)
+    print("\n embedding: ", embedding, "\t type(embedding): ", type(embedding))
+    print("\n text: ", text, "\t type(text): ", type(text))
+    print("\n collection: ", collection, "\t type(collection): ", type(collection))
 
     if embedding is not None and text and collection is not None:
         document = {
@@ -181,15 +182,7 @@ def retrieve_relevant_docs(query, collection):
 
 # Cosine similarity function
 def cosine_similarity(vec1: list, vec2: list) -> float:
-    if vec1 and vec2:
-        #print(" vec1: ", vec1, "\t type(vec1): ", type(vec1))
-        #print(" vec2: ", vec2, "\t type(vec2): ", type(vec2))
-
-        result = sum(a * b for a, b in zip(vec1, vec2)) / (
-                    sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
-        #print(" result: ", result, "\t type(result): ", type(result))
-        return result
-        # return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
+    return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
 
 
 # Function to generate chatbot response using OpenAI GPT
