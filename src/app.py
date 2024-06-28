@@ -44,9 +44,7 @@ def main():
         assert embedding is not None, "embedding not set."
 
         # Save vector to MongoDB
-        save_embedding_to_collection(embedding, text, games_collection)
- 
-        #st.success("Game embedding is saved to MongoDB collection successfully!")
+        save_embedding_to_collection(embedding, text, games_collection) 
         st.success("Game saved into MongoDB collection as embedding!")
 
         user_query = st.text_input("Enter your move:")
