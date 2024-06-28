@@ -43,37 +43,29 @@ def main():
         embedding = vectorize_text(text)
         assert embedding is not None, "embedding not set."
 
-        if text:
-            # Vectorize text
-            embedding = vectorize_text(text)
-            if embedding is not None:
-                #print(" embedding: ", embedding, "\t type(embedding): ", type(embedding))
-
-                # Save vector to MongoDB
-                save_embedding_to_collection(embedding, text, games_collection)
+        # Save vector to MongoDB
+        save_embedding_to_collection(embedding, text, games_collection)
  
-                st.success("Game embedding is saved to MongoDB collection successfully!")
+        #st.success("Game embedding is saved to MongoDB collection successfully!")
+        st.success("Game saved into MongoDB collection as embedding!")
 
-                user_query = st.text_input("Enter your move:")
-                if user_query and games_collection is not None and chat_history_collection is not None:
-                    #print(" user_query: ", user_query, "\t type(user_query): ", type(user_query))
-                    
-                    # Retrieve relevant documents
-                    relevant_docs = retrieve_relevant_docs(user_query, games_collection)
-                    if relevant_docs:
-                        #print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
+        user_query = st.text_input("Enter your move:")
+        assert user_query is not None, "user_query not set."
 
-                        # Generate response
-                        bot_response = generate_response(user_query, relevant_docs)
-                        if bot_response:
-                            #print(" bot_response: ", bot_response, "\t type(bot_response): ", type(bot_response))
+        # Retrieve relevant documents
+        relevant_docs = retrieve_relevant_docs(user_query, games_collection)
+        if relevant_docs:
+            # Generate response
+            bot_response = generate_response(user_query, relevant_docs)
+            assert bot_response is not None, "bot_response not set."
 
-                            # Display response
-                            st.write("NextMOVE response:")
-                            st.write(bot_response)
+            # Display response
+            st.write("NextMOVE response:")
+            st.write(bot_response)
 
-                            # Save chat history to MongoDB
-                            save_chat_history(user_query, bot_response, chat_history_collection)            
+            # Save chat history to MongoDB
+            save_chat_history(user_query, bot_response, chat_history_collection)            
+            st.success("Chat saved into MongoDB collection as embedding!")
 
 
 if __name__ == "__main__":
