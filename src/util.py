@@ -1,5 +1,4 @@
 from constants import *
-#import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pymongo.database import Database
