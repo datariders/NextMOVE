@@ -14,7 +14,6 @@ def main():
 
     mongodb_client = get_mongodb_cluster_client(uri)
     assert mongodb_client is not None, "mongodb_client not set."
-    print(" mongodb_client: ", mongodb_client, "\t type(mongodb_client): " , type(mongodb_client))
 
     assert MONGODB_CLUSTER_DATABASE_NAME is not None and len(MONGODB_CLUSTER_DATABASE_NAME) > 0, "MONGODB_CLUSTER_DATABASE_NAME not set."
     assert MONGODB_DATABASE_GAMES_COLLECTION_NAME is not None and len(MONGODB_DATABASE_GAMES_COLLECTION_NAME) > 0, "MONGODB_DATABASE_GAMES_COLLECTION_NAME not set."
@@ -37,7 +36,6 @@ def main():
     # Upload PDF
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
     if uploaded_file:
-        print(" uploaded_file: ", uploaded_file, "\t type(uploaded_file): ", type(uploaded_file))
         text = get_text_from_pdf(uploaded_file)
         assert text is not None, "text not set."
 
@@ -58,17 +56,17 @@ def main():
 
                 user_query = st.text_input("Enter your move:")
                 if user_query and games_collection is not None and chat_history_collection is not None:
-                    print(" user_query: ", user_query, "\t type(user_query): ", type(user_query))
+                    #print(" user_query: ", user_query, "\t type(user_query): ", type(user_query))
                     
                     # Retrieve relevant documents
                     relevant_docs = retrieve_relevant_docs(user_query, games_collection)
                     if relevant_docs:
-                        print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
+                        #print(" relevant_docs: ", relevant_docs, "\t type(relevant_docs): ", type(relevant_docs))
 
                         # Generate response
                         bot_response = generate_response(user_query, relevant_docs)
                         if bot_response:
-                            print(" bot_response: ", bot_response, "\t type(bot_response): ", type(bot_response))
+                            #print(" bot_response: ", bot_response, "\t type(bot_response): ", type(bot_response))
 
                             # Display response
                             st.write("NextMOVE response:")
