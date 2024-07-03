@@ -5,19 +5,13 @@ import streamlit as st
 
 
 def main():
-    assert MONGODB_USERNAME is not None and len(MONGODB_USERNAME) > 0, "MONGODB_USERNAME not set."
-    assert MONGODB_USER_PASSWORD is not None and len(MONGODB_USER_PASSWORD) > 0, "MONGODB_USER_PASSWORD not set."
-    assert MONGODB_CLUSTER_HOSTNAME is not None and len(MONGODB_CLUSTER_HOSTNAME) > 0, "MONGODB_CLUSTER_HOSTNAME not set."
+    init_config_parameters()
 
-    uri = get_mongodb_cluster_connection_uri(MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME)
-    assert uri is not None, "uri not set."
+    mongodb_uri = get_mongodb_cluster_connection_uri(MONGODB_USERNAME, MONGODB_USER_PASSWORD, MONGODB_CLUSTER_HOSTNAME)
+    assert mongodb_uri is not None, "mongodb_uri not set."
 
-    mongodb_client = get_mongodb_cluster_client(uri)
+    mongodb_client = get_mongodb_cluster_client(mongodb_uri)
     assert mongodb_client is not None, "mongodb_client not set."
-
-    assert MONGODB_CLUSTER_DATABASE_NAME is not None and len(MONGODB_CLUSTER_DATABASE_NAME) > 0, "MONGODB_CLUSTER_DATABASE_NAME not set."
-    assert MONGODB_DATABASE_GAMES_COLLECTION_NAME is not None and len(MONGODB_DATABASE_GAMES_COLLECTION_NAME) > 0, "MONGODB_DATABASE_GAMES_COLLECTION_NAME not set."
-    assert MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME is not None and len(MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME) > 0, "MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME not set."
 
     games_db = get_mongodb_database(mongodb_client, MONGODB_CLUSTER_DATABASE_NAME)
     assert games_db is not None, "games_db not set."
@@ -30,21 +24,21 @@ def main():
 
 
     # Streamlit interface
-    st.image('assets/header.png')
+    st.image('assets/nextmove_header.png')
     st.title("NextMOVE: Chess training assistant")
 
     # Upload PDF
     uploaded_file = st.file_uploader("Upload Chess games (pdf)", type="pdf")
     if uploaded_file:
-        text = get_text_from_pdf(uploaded_file)
-        assert text is not None, "text not set."
+        game_text = get_text_from_pdf(uploaded_file)
+        assert game_text is not None, "game_text not set."
 
         # Vectorize text
-        embedding = vectorize_text(text)
-        assert embedding is not None, "embedding not set."
+        game_embedding = vectorize_text(game_text)
+        assert game_embedding is not None, "game_embedding not set."
 
         # Save vector to MongoDB
-        save_embedding_to_collection(embedding, text, games_collection) 
+        save_embedding_to_collection(game_embedding, game_text, games_collection) 
         st.success("Game saved into MongoDB collection as embedding!")
 
         user_query = st.text_input("Enter your move:")
@@ -54,15 +48,15 @@ def main():
         relevant_docs = retrieve_relevant_docs(user_query, games_collection)
         if relevant_docs:
             # Generate response
-            bot_response = generate_response(user_query, relevant_docs)
-            assert bot_response is not None, "bot_response not set."
+            nextmove_response = generate_response(user_query, relevant_docs)
+            assert nextmove_response is not None, "nextmove_response not set."
 
             # Display response
             st.write("NextMOVE response:")
-            st.write(bot_response)
+            st.write(nextmove_response)
 
             # Save chat history to MongoDB
-            save_chat_history(user_query, bot_response, chat_history_collection)            
+            save_chat_history(user_query, nextmove_response, chat_history_collection)            
             st.success("Chat saved into MongoDB collection as embedding!")
 
 

@@ -1,6 +1,5 @@
 from constants import *
 from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
 from pymongo.database import Database
 from pymongo.collection import Collection
 import tempfile
@@ -9,13 +8,7 @@ from sentence_transformers import SentenceTransformer
 import openai
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 from numpy import ndarray
-
-
-
-# Initialize OpenAI API (Replace with your API key)
-if openai.api_key is None:
-    openai.api_key = OPENAI_API_KEY
-assert openai.api_key is not None, "OpenAI API key not found."
+import certifi
 
 
 
@@ -27,6 +20,29 @@ MAX_TOKENS = 150
 DOCUMENT_TEXT = "text"
 DOCUMENT_VECTOR = "vector"
 
+
+def init_config_parameters():
+    """
+    Verify and initialize the config parameters
+
+    Parameters:
+    None
+
+    Returns:
+    None
+    """
+
+    assert MONGODB_USERNAME is not None and len(MONGODB_USERNAME) > 0, "MONGODB_USERNAME not set."
+    assert MONGODB_USER_PASSWORD is not None and len(MONGODB_USER_PASSWORD) > 0, "MONGODB_USER_PASSWORD not set."
+    assert MONGODB_CLUSTER_HOSTNAME is not None and len(MONGODB_CLUSTER_HOSTNAME) > 0, "MONGODB_CLUSTER_HOSTNAME not set."
+    assert MONGODB_CLUSTER_DATABASE_NAME is not None and len(MONGODB_CLUSTER_DATABASE_NAME) > 0, "MONGODB_CLUSTER_DATABASE_NAME not set."
+    assert MONGODB_DATABASE_GAMES_COLLECTION_NAME is not None and len(MONGODB_DATABASE_GAMES_COLLECTION_NAME) > 0, "MONGODB_DATABASE_GAMES_COLLECTION_NAME not set."
+    assert MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME is not None and len(MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME) > 0, "MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME not set."
+
+    # Initialize OpenAI API (Replace with your API key)
+    if openai.api_key is None:
+        openai.api_key = OPENAI_API_KEY
+    assert openai.api_key is not None, "OpenAI API key not found."
 
 
 def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_password: str, mongodb_cluster_hostname: str) -> str: 
@@ -44,7 +60,7 @@ def get_mongodb_cluster_connection_uri(mongodb_username: str, mongodb_user_passw
 
     mongodb_cluster_hostname_str = mongodb_cluster_hostname.split(".") 
     mongodb_clustername = mongodb_cluster_hostname_str[0]
-    
+ 
     uri = ("mongodb+srv://" +
            mongodb_username +
            ":" +
@@ -71,13 +87,12 @@ def get_mongodb_cluster_client(uri: str) -> MongoClient:
     if uri:
         try:
             # Create a new client and connect to the server
-            mongodb_client = MongoClient(uri, server_api=ServerApi('1'))
+            mongodb_client = MongoClient(uri, tlsCAFile=certifi.where())
 
             # Send a ping to confirm a successful connection
             mongodb_client.admin.command('ping')
             print("Pinged the MongoDB cluster deployment. Successfully connected to MongoDB cluster!")
         except Exception as e:
-            print(f"{e}")
             raise Exception(
                 'Failed to connect to MongoDB database.  Please supply valid MongoDB username, MongoDB user password, MongoDB cluster hostname parameters') from e
 
@@ -85,7 +100,17 @@ def get_mongodb_cluster_client(uri: str) -> MongoClient:
 
 
 def get_mongodb_database(mongodb_client: MongoClient, database_name: str) -> Database:
-    """ Returns vectorsdb """
+    """
+    Connects to MongoDB cluster and returns the games database
+
+    Parameters:
+    mongodb_client (MongoClient): MongoDB connection uri
+    database_name (str): Name of the game database
+
+    Returns:
+    pymongo.database.Database: Game database
+    """
+
     db = None
     if mongodb_client and database_name:
         db = mongodb_client[database_name]
@@ -93,6 +118,17 @@ def get_mongodb_database(mongodb_client: MongoClient, database_name: str) -> Dat
 
 
 def get_collection(db: Database, collection_name: str) -> Collection:
+    """
+    Connects to MongoDB game database and returns the games collection 
+
+    Parameters:
+    db (pymongo.database.Database): MongoDB game database
+    collection_name (str): Name of the game collection
+
+    Returns:
+    pymongo.collection.Collection: Game collection
+    """
+
     collection = None
     if db is not None and collection_name:
         collection = db[collection_name]
@@ -100,6 +136,16 @@ def get_collection(db: Database, collection_name: str) -> Collection:
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
+    """
+    Extracts the text out of the game pdf file
+
+    Parameters:
+    pdf_path (str): Path of the game pdf file
+
+    Returns:
+    str: Returns text out of the game pdf file
+    """
+
     text = ""
     if pdf_path:
         try:
@@ -114,13 +160,40 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     return text
 
 
-# This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.
+"""
+This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.  The model returned has the following config parameters:
+
+  SentenceTransformer(
+  (0): Transformer({'max_seq_length': 128, 'do_lower_case': False}) with Transformer model: BertModel 
+  (1): Pooling({'word_embedding_dimension': 384, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})
+)
+"""
 def get_sentence_transformer_model() -> SentenceTransformer:
+    """
+    Returns SentenceTransformer model
+
+    Parameters:
+    None
+
+    Returns:
+    sentence_transformers.SentenceTransformer: Returns the SentenceTransformer model
+    """
+
     return SentenceTransformer(SENTENCE_TRANSFORMER_PARAPHRASE_MINI_LM_L6_v2)
 
 
 # Function to vectorize text
 def vectorize_text(text: str) -> ndarray:
+    """
+    Converts the game text into vector and returns the numpy array of the vector
+
+    Parameters:
+    text (str): Text of the game
+
+    Returns:
+    numpy.ndarray: Vectorized game text
+    """
+
     embedding = None
     if text:
         try:
@@ -134,17 +207,39 @@ def vectorize_text(text: str) -> ndarray:
 
 # Function to save vector to MongoDB
 def save_embedding_to_collection(embedding: ndarray, text: str, collection: Collection):
+    """
+    Store game embedding to the game collection
+
+    Parameters:
+    embedding (ndarray): Vectorized numpy array of the game text
+    text (str): Text of the game
+    collection (pymongo.collection.Collection): game collection
+
+    Returns:
+    None
+    """
+
     if embedding is not None and text and collection is not None:
         document = {
             DOCUMENT_TEXT: text,
             DOCUMENT_VECTOR: embedding.tolist()  # Convert numpy array to list
         }
-        #print(" document: ", document, "\t type(document): ", type(document))
         collection.insert_one(document)
 
 
 # Function to retrieve relevant documents from MongoDB
 def retrieve_relevant_docs(query: list, collection: Collection) -> list:
+    """
+    Retrieve relevant document based on the user query
+
+    Parameters:
+    query (list): User query
+    collection (pymongo.collection.Collection): game collection
+
+    Returns:
+    list: document relevant to the user query
+    """
+
     if query and collection is not None:
         model = get_sentence_transformer_model()
         if model:
@@ -157,13 +252,35 @@ def retrieve_relevant_docs(query: list, collection: Collection) -> list:
 
 
 # Cosine similarity function
-def cosine_similarity(vec1: list, vec2: list) -> float:
-    if vec1 and vec2:
-        return sum(a * b for a, b in zip(vec1, vec2)) / (sum(a * a for a in vec1) ** 0.5 * sum(b * b for b in vec2) ** 0.5)
+def cosine_similarity(vector_1: list, vector_2: list) -> float:
+    """
+    Returns cosine similarity value
+
+    Parameters:
+    vector_1 (list): User query
+    vector_2 (list): Game collection
+
+    Returns:
+    float: cosine similarity value
+    """
+
+    if vector_1 and vector_2:
+        return sum(a * b for a, b in zip(vector_1, vector_2)) / (sum(a * a for a in vector_1) ** 0.5 * sum(b * b for b in vector_2) ** 0.5)
 
 
 # Function to generate chatbot response using OpenAI GPT
 def generate_response(query: str, relevant_docs: list) -> str:
+    """
+    Returns next move response for the user query
+
+    Parameters:
+    query (str): User query
+    relevant_docs (list): The relevant game collection
+
+    Returns:
+    str: Next move response for the user query
+    """
+
     if query and relevant_docs:
         augmented_query = query + " " + " ".join([doc[DOCUMENT_TEXT] for doc in relevant_docs])
         if augmented_query:
@@ -182,6 +299,18 @@ def generate_response(query: str, relevant_docs: list) -> str:
 
 # Function to save chat history to MongoDB
 def save_chat_history(user_query: str, nextmove_response: str, collection: Collection):
+    """
+    Stores the chat history in the chat collection
+
+    Parameters:
+    user_query (str): User query
+    nextmove (str): The nextmove response
+    collection (pymongo.collection.Collection): The relevant game collection
+
+    Returns:
+    None
+    """
+
     if user_query and nextmove_response and collection is not None:
         document = {
             'user_query': user_query,
@@ -191,6 +320,16 @@ def save_chat_history(user_query: str, nextmove_response: str, collection: Colle
 
 
 def get_text_from_pdf(file: UploadedFile) -> str:
+    """
+    Stores the chat history in the chat collection
+
+    Parameters:
+    file (streamlit.runtime.uploaded_file_manager.UploadedFile): The game pdf file
+
+    Returns:
+    str: Extracts text from the game pdf
+    """
+
     if file:
         # Save the uploaded PDF to a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
