@@ -32,17 +32,19 @@ def main():
     if uploaded_file:
         game_text = get_text_from_pdf(uploaded_file)
         assert game_text is not None, "game_text not set."
+        print("\n Extracted game_text: \n", game_text)
 
         # Vectorize text
         game_embedding = vectorize_text(game_text)
         assert game_embedding is not None, "game_embedding not set."
+        print("\n Vectorized game_embedding: \n", game_embedding)
 
         # Save vector to MongoDB
         save_embedding_to_collection(game_embedding, game_text, games_collection) 
-        st.success("Game saved into MongoDB collection as embedding!")
 
-        user_query = st.text_input("Enter your move:")
+        user_query = st.text_input("Enter your query:")
         assert user_query is not None, "user_query not set."
+        print("\n user_query: ", user_query)
 
         # Retrieve relevant documents
         relevant_docs = retrieve_relevant_docs(user_query, games_collection)
@@ -50,6 +52,7 @@ def main():
             # Generate response
             nextmove_response = generate_response(user_query, relevant_docs)
             assert nextmove_response is not None, "nextmove_response not set."
+            print("\n nextmove_response: ", nextmove_response)
 
             # Display response
             st.write("NextMOVE response:")
@@ -57,7 +60,7 @@ def main():
 
             # Save chat history to MongoDB
             save_chat_history(user_query, nextmove_response, chat_history_collection)            
-            st.success("Chat saved into MongoDB collection as embedding!")
+            print("\n Chat saved into MongoDB collection as embedding!")
 
 
 if __name__ == "__main__":
