@@ -91,7 +91,7 @@ def get_mongodb_cluster_client(uri: str) -> MongoClient:
 
             # Send a ping to confirm a successful connection
             mongodb_client.admin.command('ping')
-            print("Pinged the MongoDB cluster deployment. Successfully connected to MongoDB cluster!")
+            print("\n Pinged the MongoDB cluster deployment. Successfully connected to MongoDB cluster!")
         except Exception as e:
             raise Exception(
                 'Failed to connect to MongoDB database.  Please supply valid MongoDB username, MongoDB user password, MongoDB cluster hostname parameters') from e
@@ -160,17 +160,16 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     return text
 
 
-"""
-This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.  The model returned has the following config parameters:
-
-  SentenceTransformer(
-  (0): Transformer({'max_seq_length': 128, 'do_lower_case': False}) with Transformer model: BertModel 
-  (1): Pooling({'word_embedding_dimension': 384, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})
-)
-"""
 def get_sentence_transformer_model() -> SentenceTransformer:
     """
     Returns SentenceTransformer model
+
+    This is a sentence-transformers model.  It maps sentences & paragraphs to a 384 dimensional dense vector space and can be used for tasks like clustering or semantic search.  The model returned has the following config parameters:
+
+        SentenceTransformer(
+        (0): Transformer({'max_seq_length': 128, 'do_lower_case': False}) with Transformer model: BertModel 
+        (1): Pooling({'word_embedding_dimension': 384, 'pooling_mode_cls_token': False, 'pooling_mode_mean_tokens': True, 'pooling_mode_max_tokens': False, 'pooling_mode_mean_sqrt_len_tokens': False, 'pooling_mode_weightedmean_tokens': False, 'pooling_mode_lasttoken': False, 'include_prompt': True})
+)
 
     Parameters:
     None
@@ -224,7 +223,13 @@ def save_embedding_to_collection(embedding: ndarray, text: str, collection: Coll
             DOCUMENT_TEXT: text,
             DOCUMENT_VECTOR: embedding.tolist()  # Convert numpy array to list
         }
-        collection.insert_one(document)
+
+        existing_document = collection.find_one(document)
+        if not existing_document:
+            collection.insert_one(document)
+            print("\n Game saved into MongoDB collection as embedding!")
+        else:
+            print("\n This game exists in the MongoDB game collection as embedding!")
 
 
 # Function to retrieve relevant documents from MongoDB
