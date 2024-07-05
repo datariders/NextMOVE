@@ -1,0 +1,5 @@
+streamlit
+sentence-transformers
+pymongo
+PyMuPDF
+openai==0.28
