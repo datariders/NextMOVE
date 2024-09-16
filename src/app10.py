@@ -30,7 +30,7 @@ games_collection = games_db[MONGODB_DATABASE_GAMES_COLLECTION_NAME]
 chat_history_collection = games_db[MONGODB_DATABASE_CHAT_HISTORY_COLLECTION_NAME]
 
 
-# Function to vectorize text
+# Function to vectorize text using SentenceTransformer('paraphrase-MiniLM-L6-v2') model
 def vectorize_text(text: str) -> ndarray:
     embedding = None
     if text:
@@ -74,7 +74,7 @@ def cosine_similarity(vector_1: list, vector_2: list) -> float:
     if vector_1 and vector_2:
         return sum(a * b for a, b in zip(vector_1, vector_2)) / (sum(a * a for a in vector_1) ** 0.5 * sum(b * b for b in vector_2) ** 0.5)
 
-# Function to generate chatbot response using OpenAI GPT
+# Function to generate chatbot response using OpenAI GPT-3.5
 def generate_response(query: str, relevant_docs: list) -> str:
     if query and relevant_docs:
         augmented_query = query + " " + " ".join([doc["text"] for doc in relevant_docs])
@@ -120,6 +120,10 @@ def get_text_from_pdf(file_path: str) -> str:
         print(f"An error occurred while reading the file at path {file_path}.")
 
 def main():
+    """
+    For each game pdf file in the GAME_DIRECTORY, extract the text, vectorize,
+    and store the game along with its embeddings in the games collection.
+    """    
     for root, dirnames, fnames in os.walk(GAME_DIRECTORY):
         for fname in fnames:
             file = os.path.join(root, fname)
@@ -134,7 +138,7 @@ def main():
                 # Save vector to MongoDB
                 save_embedding_to_collection(game_embedding, game_text, games_collection) 
 
-    user_query = "<PROVIDE_USER_QUERY_HERE>"
+    user_query = "<PROVIDE_USER_QUERY_HERE>" # get the user query
     print("\n user_query: ", user_query)
 
     # Retrieve relevant documents
