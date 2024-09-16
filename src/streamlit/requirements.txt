@@ -1,0 +1,12 @@
+boto3 
+pypdf 
+langchain 
+sentence-transformers 
+cassandra-driver
+streamlit
+groq
+awscli
+langchain-community
+cassio
+langchain_groq
+PyPDF2
