@@ -1,5 +1,3 @@
-# pip3 install -U pymongo PyPDF2 sentence-transformers openai==0.28
-
 import os
 from pymongo.mongo_client import MongoClient
 import certifi
